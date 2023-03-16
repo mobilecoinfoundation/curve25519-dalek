@@ -11,15 +11,11 @@ enum DalekBits {
 }
 
 fn main() {
-    #[cfg(curve25519_dalek_bits = "32")]
-    let curve25519_dalek_bits = DalekBits::Dalek32;
-
-    #[cfg(curve25519_dalek_bits = "64")]
-    let curve25519_dalek_bits = DalekBits::Dalek64;
-
-    #[cfg(all(not(curve25519_dalek_bits = "64"), not(curve25519_dalek_bits = "32")))]
-    let curve25519_dalek_bits = deterministic::determine_curve25519_dalek_bits();
-
+    let curve25519_dalek_bits = match std::env::var("CARGO_CFG_CURVE25519_DALEK_BITS").as_deref() {
+        Ok("32") => DalekBits::Dalek32,
+        Ok("64") => DalekBits::Dalek64,
+        _ => deterministic::determine_curve25519_dalek_bits(),
+    };
     match curve25519_dalek_bits {
         DalekBits::Dalek64 => println!("cargo:rustc-cfg=curve25519_dalek_bits=\"64\""),
         DalekBits::Dalek32 => println!("cargo:rustc-cfg=curve25519_dalek_bits=\"32\""),
